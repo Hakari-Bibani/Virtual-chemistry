@@ -1,90 +1,91 @@
 import streamlit as st
 import importlib
+from typing import Callable
 
 # Configure page settings
 st.set_page_config(
     page_title="Virtual Chemistry Lab",
     page_icon="⚗️",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # Chemistry experiments data
 experiments = {
     "Baking Soda and Vinegar Reaction": {
-        "description": "A classic acid-base reaction that produces carbon dioxide gas.",
-        "visualization": "Fizzing and bubbling as CO2 is released.",
-        "fun_fact": "This reaction is commonly used in science fair volcanoes!",
-        "module": "baking"
+        "module": "baking",
+        "run_experiment": lambda: importlib.import_module("baking").run_experiment()
     },
     "Sodium and Water Reaction": {
-        "description": "Sodium metal reacts with water, producing hydrogen gas and heat.",
-        "visualization": "Bubbles and flames as hydrogen gas ignites.",
-        "fun_fact": "This reaction showcases the reactivity of alkali metals, especially with water.",
-        "module": "explosion"
+        "module": "explosion",
+        "run_experiment": lambda: importlib.import_module("explosion").run_experiment()
     },
     "pH Indicator": {
-        "description": "A reaction where an indicator changes color based on the pH.",
-        "visualization": "Litmus turning red in acid, blue in base, green in neutral.",
-        "fun_fact": "pH indicators are used in labs and gardening!",
-        "module": "indicator"
+        "module": "indicator",
+        "run_experiment": lambda: importlib.import_module("indicator").run_experiment()
     },
     "Acid-Base Titration": {
-        "description": "A process where an acid is neutralized by a base.",
-        "visualization": "A pH curve that changes as titrant is added.",
-        "fun_fact": "Titrations help determine unknown concentrations.",
-        "module": "acid_base"
+        "module": "acid_base",
+        "run_experiment": lambda: importlib.import_module("acid_base").run_experiment()
     },
     "Elephant Toothpaste Reaction": {
-        "description": "Decomposition of hydrogen peroxide produces oxygen gas and foam.",
-        "visualization": "Expanding foam like giant toothpaste.",
-        "fun_fact": "Famous for its foamy explosion in demonstrations!",
-        "module": "elephant_toothpaste"
+        "module": "elephant_toothpaste",
+        "run_experiment": lambda: importlib.import_module("elephant_toothpaste").run_experiment()
     }
 }
 
 # Custom CSS for the flip card styling and title animations
 def load_css():
     css = """
-    <style>
-    /* [Previous CSS code remains unchanged] */
-
+    /* All the previous CSS code remains unchanged */
+    
     /* Custom sidebar styling */
     .sidebar .sidebar-content {
         background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
-        padding: 20px;
     }
 
-    .sidebar .stButton button {
-        background-color: white;
-        color: #1a1a1a;
-        border: none;
-        padding: 10px 20px;
-        text-align: left;
-        text-decoration: none;
-        display: block;
-        width: 100%;
-        border-radius: 10px;
+    .sidebar .element-container {
+        background: transparent;
+    }
+
+    .sidebar .stButton > button {
         font-family: 'Roboto', sans-serif;
         font-weight: 500;
+        color: #1a1a1a;
+        background: white;
+        padding: 10px;
+        border-radius: 10px;
+        margin: 5px 0;
         transition: all 0.3s ease;
     }
 
-    .sidebar .stButton button:hover {
-        background-color: #f8f8f8;
+    .sidebar .stButton > button:hover {
+        background: #f8f8f8;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
 
-def load_module(module_name):
-    """Dynamically import and return the specified module"""
-    try:
-        return importlib.import_module(module_name)
-    except ImportError as e:
-        st.error(f"Error loading module {module_name}: {str(e)}")
-        return None
+def render_card(title, content):
+    st.markdown(f"""
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <h2>{title}</h2>
+                    <div style='font-size: 3em; margin: 20px 0'>🧪</div>
+                </div>
+                <div class="flip-card-back">
+                    <h3>Description</h3>
+                    <p>{content['description']}</p>
+                    <h3>Visualization</h3>
+                    <p>{content['visualization']}</p>
+                    <h3>Fun Fact</h3>
+                    <p>{content['fun_fact']}</p>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
 def main():
     load_css()
@@ -92,12 +93,8 @@ def main():
     # Sidebar navigation
     with st.sidebar:
         st.title("🧪 Experiments")
-        selected_tab = st.button("Overview")
-        for title in experiments:
-            if st.button(title):
-                selected_tab = title
-                break
-    
+        selected_tab = st.selectbox("Select Experiment", list(experiments.keys()), index=0)
+
     # Title container with animations and icons
     st.markdown("""
         <div class='title-container'>
@@ -106,7 +103,7 @@ def main():
             <div class='floating-formula formula3'>O₂ 🔥</div>
             <div class='floating-formula formula4'>NaCl ✨</div>
             <div class='floating-formula formula5'>CH₄ 💨</div>
-            <h1 class='glowing-title'>Virtual Chemistry Lab</h1>
+            <h1 class='glowing-title'>{selected_tab}</h1>
             <div class='icons-container'>
                 <span class='chemistry-icon'>⚗️</span>
                 <span class='chemistry-icon'>🧪</span>
@@ -117,30 +114,9 @@ def main():
         </div>
     """, unsafe_allow_html=True)
 
-    if selected_tab == "Overview":
-        # Create the layout with two rows: top row with three cards, bottom row with two
-        top_row = st.columns(3)
-        bottom_row = st.columns(2)
-
-        # First row of cards (3 cards)
-        for i, (title, content) in enumerate(list(experiments.items())[:3]):
-            with top_row[i]:
-                render_card(title, content)
-
-        # Second row of cards (2 cards)
-        for i, (title, content) in enumerate(list(experiments.items())[3:]):
-            with bottom_row[i]:
-                render_card(title, content)
-    else:
-        # Load and display the selected experiment's content
-        experiment_data = experiments[selected_tab]
-        module_name = experiment_data["module"]
-        module = load_module(module_name)
-        
-        if module and hasattr(module, 'run_experiment'):
-            module.run_experiment()
-        else:
-            st.warning(f"The experiment module '{module_name}' is not properly configured.")
+    # Load and display the selected experiment's content
+    experiment_data = experiments[selected_tab]
+    experiment_data["run_experiment"]()
 
     # Footer
     st.markdown("""
