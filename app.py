@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 from pathlib import Path
 import importlib
 import sys
-from indicator import run_indicator_experiment
+from indicator import LitmusPaper, render_beakers
 
 # Configure page settings
 st.set_page_config(
@@ -98,22 +98,6 @@ def render_title():
         </div>
     """, unsafe_allow_html=True)
 
-def render_overview():
-    """Render the main overview page with experiment cards"""
-    # Create the layout with two rows: top row with three cards, bottom row with two
-    top_row = st.columns(3)
-    bottom_row = st.columns(2)
-
-    # First row of cards (3 cards)
-    for i, (title, content) in enumerate(list(experiments.items())[:3]):
-        with top_row[i]:
-            render_card(title, content)
-
-    # Second row of cards (2 cards)
-    for i, (title, content) in enumerate(list(experiments.items())[3:]):
-        with bottom_row[i]:
-            render_card(title, content)
-
 def main():
     load_css()
 
@@ -129,7 +113,7 @@ def main():
     if selected_tab == "Overview":
         render_overview()
     elif selected_tab == "pH Indicator":
-        run_indicator_experiment()
+        render_indicator_experiment()
     else:
         # Load and display the selected experiment's content
         experiment_data = experiments[selected_tab]
@@ -148,6 +132,28 @@ def main():
             <a href="https://hawkardemo.streamlit.app/" target="_blank">Visit Demo Site</a>
         </div>
     """, unsafe_allow_html=True)
+
+def render_overview():
+    """Render the main overview page with experiment cards"""
+    # Create the layout with two rows: top row with three cards, bottom row with two
+    top_row = st.columns(3)
+    bottom_row = st.columns(2)
+
+    # First row of cards (3 cards)
+    for i, (title, content) in enumerate(list(experiments.items())[:3]):
+        with top_row[i]:
+            render_card(title, content)
+
+    # Second row of cards (2 cards)
+    for i, (title, content) in enumerate(list(experiments.items())[3:]):
+        with bottom_row[i]:
+            render_card(title, content)
+
+def render_indicator_experiment():
+    """Render the pH Indicator experiment"""
+    litmus_paper = LitmusPaper(x=100, y=100)
+    render_beakers()
+    litmus_paper.draw()
 
 if __name__ == "__main__":
     main()
