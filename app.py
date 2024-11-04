@@ -1,16 +1,12 @@
 import streamlit as st
-import streamlit.components.v1 as components
-from pathlib import Path
 import importlib
-import sys
-from indicator import LitmusPaper, render_beakers
 
 # Configure page settings
 st.set_page_config(
     page_title="Virtual Chemistry Lab",
     page_icon="⚗️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Chemistry experiments data
@@ -47,31 +43,42 @@ experiments = {
     }
 }
 
+# Custom CSS for the flip card styling and title animations
 def load_css():
-    # [Previous CSS code remains unchanged]
-    pass
+    css = """
+    <style>
+    /* [Previous CSS code remains unchanged] */
 
-def render_card(title: str, content: dict):
-    st.markdown(f"""
-        <div class="flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h2>{title}</h2>
-                    <div style='font-size: 3em; margin: 20px 0'>🧪</div>
-                </div>
-                <div class="flip-card-back">
-                    <h3>Description</h3>
-                    <p>{content['description']}</p>
-                    <h3>Visualization</h3>
-                    <p>{content['visualization']}</p>
-                    <h3>Fun Fact</h3>
-                    <p>{content['fun_fact']}</p>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    /* Custom sidebar styling */
+    .sidebar .sidebar-content {
+        background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
+        padding: 20px;
+    }
 
-def load_module(module_name: str):
+    .sidebar .stButton button {
+        background-color: white;
+        color: #1a1a1a;
+        border: none;
+        padding: 10px 20px;
+        text-align: left;
+        text-decoration: none;
+        display: block;
+        width: 100%;
+        border-radius: 10px;
+        font-family: 'Roboto', sans-serif;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar .stButton button:hover {
+        background-color: #f8f8f8;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+def load_module(module_name):
     """Dynamically import and return the specified module"""
     try:
         return importlib.import_module(module_name)
@@ -79,7 +86,19 @@ def load_module(module_name: str):
         st.error(f"Error loading module {module_name}: {str(e)}")
         return None
 
-def render_title():
+def main():
+    load_css()
+    
+    # Sidebar navigation
+    with st.sidebar:
+        st.title("🧪 Experiments")
+        selected_tab = st.button("Overview")
+        for title in experiments:
+            if st.button(title):
+                selected_tab = title
+                break
+    
+    # Title container with animations and icons
     st.markdown("""
         <div class='title-container'>
             <div class='floating-formula formula1'>H₂O 💧</div>
@@ -98,22 +117,20 @@ def render_title():
         </div>
     """, unsafe_allow_html=True)
 
-def main():
-    load_css()
-
-    # Sidebar navigation
-    with st.sidebar:
-        st.title("🧪 Experiments")
-        tabs = ["Overview"] + list(experiments.keys())
-        selected_tab = st.radio("Select Experiment", tabs)
-
-    # Main content area
-    render_title()
-
     if selected_tab == "Overview":
-        render_overview()
-    elif selected_tab == "pH Indicator":
-        render_indicator_experiment()
+        # Create the layout with two rows: top row with three cards, bottom row with two
+        top_row = st.columns(3)
+        bottom_row = st.columns(2)
+
+        # First row of cards (3 cards)
+        for i, (title, content) in enumerate(list(experiments.items())[:3]):
+            with top_row[i]:
+                render_card(title, content)
+
+        # Second row of cards (2 cards)
+        for i, (title, content) in enumerate(list(experiments.items())[3:]):
+            with bottom_row[i]:
+                render_card(title, content)
     else:
         # Load and display the selected experiment's content
         experiment_data = experiments[selected_tab]
@@ -132,28 +149,6 @@ def main():
             <a href="https://hawkardemo.streamlit.app/" target="_blank">Visit Demo Site</a>
         </div>
     """, unsafe_allow_html=True)
-
-def render_overview():
-    """Render the main overview page with experiment cards"""
-    # Create the layout with two rows: top row with three cards, bottom row with two
-    top_row = st.columns(3)
-    bottom_row = st.columns(2)
-
-    # First row of cards (3 cards)
-    for i, (title, content) in enumerate(list(experiments.items())[:3]):
-        with top_row[i]:
-            render_card(title, content)
-
-    # Second row of cards (2 cards)
-    for i, (title, content) in enumerate(list(experiments.items())[3:]):
-        with bottom_row[i]:
-            render_card(title, content)
-
-def render_indicator_experiment():
-    """Render the pH Indicator experiment"""
-    litmus_paper = LitmusPaper(x=100, y=100)
-    render_beakers()
-    litmus_paper.draw()
 
 if __name__ == "__main__":
     main()
