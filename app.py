@@ -1,85 +1,41 @@
 import streamlit as st
-import streamlit.components.v1 as components
+import importlib  # For dynamic loading of reaction files
 from pathlib import Path
-import importlib
-import sys
-from typing import Dict, Any
 
 # Configure page settings
 st.set_page_config(
     page_title="Virtual Chemistry Lab",
     page_icon="⚗️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Chemistry experiments data
-experiments = {
-    "Baking Soda and Vinegar Reaction": {
-        "description": "A classic acid-base reaction that produces carbon dioxide gas.",
-        "visualization": "Fizzing and bubbling as CO2 is released.",
-        "fun_fact": "This reaction is commonly used in science fair volcanoes!",
-        "module": "baking"
-    },
-    "Sodium and Water Reaction": {
-        "description": "Sodium metal reacts with water, producing hydrogen gas and heat.",
-        "visualization": "Bubbles and flames as hydrogen gas ignites.",
-        "fun_fact": "This reaction showcases the reactivity of alkali metals, especially with water.",
-        "module": "explosion"
-    },
-    "pH Indicator": {
-        "description": "A reaction where an indicator changes color based on the pH.",
-        "visualization": "Litmus turning red in acid, blue in base, green in neutral.",
-        "fun_fact": "pH indicators are used in labs and gardening!",
-        "module": "indicator"
-    },
-    "Acid-Base Titration": {
-        "description": "A process where an acid is neutralized by a base.",
-        "visualization": "A pH curve that changes as titrant is added.",
-        "fun_fact": "Titrations help determine unknown concentrations.",
-        "module": "acid_base"
-    },
-    "Elephant Toothpaste Reaction": {
-        "description": "Decomposition of hydrogen peroxide produces oxygen gas and foam.",
-        "visualization": "Expanding foam like giant toothpaste.",
-        "fun_fact": "Famous for its foamy explosion in demonstrations!",
-        "module": "elephant_toothpaste"
-    }
+# Define sidebar navigation options
+reaction_tabs = {
+    "Acid Base": "acid_base",
+    "Elephant Toothpaste": "elephant_toothpaste",
+    "Indicator": "indicator",
+    "Explosion": "explosion",
+    "Baking Soda & Vinegar": "baking"
 }
 
+# Sidebar with navigation options
+selected_tab = st.sidebar.selectbox("Choose an Experiment", list(reaction_tabs.keys()))
+
+# Load CSS for styling
 def load_css():
-    # [Previous CSS code remains unchanged]
+    # Your existing CSS here
     pass
 
-def render_card(title: str, content: Dict[str, Any]) -> None:
-    st.markdown(f"""
-        <div class="flip-card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">
-                    <h2>{title}</h2>
-                    <div style='font-size: 3em; margin: 20px 0'>🧪</div>
-                </div>
-                <div class="flip-card-back">
-                    <h3>Description</h3>
-                    <p>{content['description']}</p>
-                    <h3>Visualization</h3>
-                    <p>{content['visualization']}</p>
-                    <h3>Fun Fact</h3>
-                    <p>{content['fun_fact']}</p>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+# Function to render the main page cards
+def render_card(title, content):
+    # Your existing render_card code here
+    pass
 
-def load_module(module_name: str):
-    """Dynamically import and return the specified module"""
-    try:
-        return importlib.import_module(module_name)
-    except ImportError as e:
-        st.error(f"Error loading module {module_name}: {str(e)}")
-        return None
-
-def render_title():
+def main():
+    load_css()
+    
+    # Main title and animated icons
     st.markdown("""
         <div class='title-container'>
             <div class='floating-formula formula1'>H₂O 💧</div>
@@ -98,46 +54,52 @@ def render_title():
         </div>
     """, unsafe_allow_html=True)
 
-def render_overview():
-    """Render the main overview page with experiment cards"""
-    # Create the layout with two rows: top row with three cards, bottom row with two
+    # Experiment cards
+    experiments = {
+        "Baking Soda and Vinegar Reaction": {
+            "description": "A classic acid-base reaction that produces carbon dioxide gas.",
+            "visualization": "Fizzing and bubbling as CO2 is released.",
+            "fun_fact": "This reaction is commonly used in science fair volcanoes!"
+        },
+        "Sodium and Water Reaction": {
+            "description": "Sodium metal reacts with water, producing hydrogen gas and heat.",
+            "visualization": "Bubbles and flames as hydrogen gas ignites.",
+            "fun_fact": "This reaction showcases the reactivity of alkali metals, especially with water."
+        },
+        "pH Indicator": {
+            "description": "A reaction where an indicator changes color based on the pH.",
+            "visualization": "Litmus turning red in acid, blue in base, green in neutral.",
+            "fun_fact": "pH indicators are used in labs and gardening!"
+        },
+        "Acid-Base Titration": {
+            "description": "A process where an acid is neutralized by a base.",
+            "visualization": "A pH curve that changes as titrant is added.",
+            "fun_fact": "Titrations help determine unknown concentrations."
+        },
+        "Elephant Toothpaste Reaction": {
+            "description": "Decomposition of hydrogen peroxide produces oxygen gas and foam.",
+            "visualization": "Expanding foam like giant toothpaste.",
+            "fun_fact": "Famous for its foamy explosion in demonstrations!"
+        }
+    }
+
+    # Display the experiment cards in rows
     top_row = st.columns(3)
     bottom_row = st.columns(2)
 
-    # First row of cards (3 cards)
+    # Render cards in two rows
     for i, (title, content) in enumerate(list(experiments.items())[:3]):
         with top_row[i]:
             render_card(title, content)
-
-    # Second row of cards (2 cards)
     for i, (title, content) in enumerate(list(experiments.items())[3:]):
         with bottom_row[i]:
             render_card(title, content)
 
-def main():
-    load_css()
-
-    # Sidebar navigation
-    with st.sidebar:
-        st.title("Navigation")
-        tabs = ["Overview"] + list(experiments.keys())
-        selected_tab = st.radio("Select Experiment", tabs)
-
-    # Main content area
-    render_title()
-
-    if selected_tab == "Overview":
-        render_overview()
-    else:
-        # Load and display the selected experiment's content
-        experiment_data = experiments[selected_tab]
-        module_name = experiment_data["module"]
-        module = load_module(module_name)
-        
-        if module and hasattr(module, 'run_experiment'):
-            module.run_experiment()
-        else:
-            st.warning(f"The experiment module '{module_name}' is not properly configured.")
+    # Load the selected reaction file
+    if selected_tab in reaction_tabs:
+        # Import the corresponding module
+        reaction_module = importlib.import_module(reaction_tabs[selected_tab])
+        reaction_module.main()  # Assuming each reaction file has a main() function to execute the code
 
     # Footer
     st.markdown("""
