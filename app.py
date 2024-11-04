@@ -184,21 +184,23 @@ def load_css():
         background: transparent;
     }
     
-    /* Style the black button tabs in sidebar */
-    .stButton > button {
+    /* Style the radio buttons in sidebar */
+    .stRadio > label {
         font-family: 'Roboto', sans-serif;
         font-weight: 500;
         color: #1a1a1a;
-        background-color: black;
-        border: none;
-        padding: 10px 20px;
+    }
+
+    .stRadio > div[role="radiogroup"] > label {
+        background: white;
+        padding: 10px;
         border-radius: 10px;
         margin: 5px 0;
         transition: all 0.3s ease;
     }
 
-    .stButton > button:hover {
-        background-color: #333;
+    .stRadio > div[role="radiogroup"] > label:hover {
+        background: #f8f8f8;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     </style>
@@ -240,28 +242,28 @@ def main():
     with st.sidebar:
         st.title("🧪 Experiments")
         tabs = ["Overview"] + list(experiments.keys())
-        selected_tab = st.buttons(tabs, use_container_width=True)
+        selected_tab = st.radio("Select Experiment", tabs)
     
-    if selected_tab == 0:
-        # Title container with animations and icons
-        st.markdown("""
-            <div class='title-container'>
-                <div class='floating-formula formula1'>H₂O 💧</div>
-                <div class='floating-formula formula2'>CO₂ ⚡</div>
-                <div class='floating-formula formula3'>O₂ 🔥</div>
-                <div class='floating-formula formula4'>NaCl ✨</div>
-                <div class='floating-formula formula5'>CH₄ 💨</div>
-                <h1 class='glowing-title'>Virtual Chemistry Lab</h1>
-                <div class='icons-container'>
-                    <span class='chemistry-icon'>⚗️</span>
-                    <span class='chemistry-icon'>🧪</span>
-                    <span class='chemistry-icon'>🔬</span>
-                    <span class='chemistry-icon'>🧫</span>
-                    <span class='chemistry-icon'>⚛️</span>
-                </div>
+    # Title container with animations and icons
+    st.markdown("""
+        <div class='title-container'>
+            <div class='floating-formula formula1'>H₂O 💧</div>
+            <div class='floating-formula formula2'>CO₂ ⚡</div>
+            <div class='floating-formula formula3'>O₂ 🔥</div>
+            <div class='floating-formula formula4'>NaCl ✨</div>
+            <div class='floating-formula formula5'>CH₄ 💨</div>
+            <h1 class='glowing-title'>Virtual Chemistry Lab</h1>
+            <div class='icons-container'>
+                <span class='chemistry-icon'>⚗️</span>
+                <span class='chemistry-icon'>🧪</span>
+                <span class='chemistry-icon'>🔬</span>
+                <span class='chemistry-icon'>🧫</span>
+                <span class='chemistry-icon'>⚛️</span>
             </div>
-        """, unsafe_allow_html=True)
+        </div>
+    """, unsafe_allow_html=True)
 
+    if selected_tab == "Overview":
         # Create the layout with two rows: top row with three cards, bottom row with two
         top_row = st.columns(3)
         bottom_row = st.columns(2)
@@ -277,7 +279,7 @@ def main():
                 render_card(title, content)
     else:
         # Load and display the selected experiment's content
-        experiment_data = experiments[tabs[selected_tab]]
+        experiment_data = experiments[selected_tab]
         module_name = experiment_data["module"]
         module = load_module(module_name)
         
