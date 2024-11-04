@@ -1,95 +1,107 @@
+# indicator.py
 import streamlit as st
 import time
-import streamlit.components.v1 as components
+from PIL import Image
+import numpy as np
+import io
+import base64
+from streamlit_draggable import st_draggable
 
-# Custom CSS for visuals
-st.markdown(
+def create_beaker_svg(color="#f0f0f0"):
+    return f"""
+    <svg width="100" height="150" viewBox="0 0 100 150">
+        <path d="M20 30 L20 120 Q20 140 40 140 L60 140 Q80 140 80 120 L80 30 Z" 
+              fill="{color}" stroke="black" stroke-width="2"/>
+        <path d="M15 30 L85 30" stroke="black" stroke-width="2"/>
+    </svg>
     """
-    <style>
-    .beaker {
-        display: inline-block;
-        width: 100px;
-        height: 150px;
-        background-color: #d3d3d3; /* Light grey solution */
-        border-radius: 10px 10px 0 0;
-        border: 2px solid #999;
-        position: relative;
-        margin: 20px;
-        text-align: center;
-        vertical-align: top;
-    }
-    .litmus-paper {
-        width: 80px;
-        height: 10px;
-        background-color: black;
-        margin-top: 20px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
-st.title("Litmus Paper Experiment")
+def create_litmus_paper_svg(color="black"):
+    return f"""
+    <svg width="20" height="80" viewBox="0 0 20 80">
+        <rect x="5" y="0" width="10" height="80" fill="{color}" stroke="none"/>
+    </svg>
+    """
 
-# Beakers with different solutions
-solutions = {
-    "Beaker 1": "Neutral (H₂O)",
-    "Beaker 2": "Acidic (HCl)",
-    "Beaker 3": "Basic (NaOH)"
-}
-solution_colors = {
-    "Neutral (H₂O)": "green",
-    "Acidic (HCl)": "red",
-    "Basic (NaOH)": "blue"
-}
+def main():
+    st.title("Interactive Litmus Paper Experiment")
+    st.markdown("""
+    ### Instructions:
+    1. Drag the litmus paper into any beaker to test the solution
+    2. Watch the color change based on the pH:
+        - Green = Neutral (H₂O)
+        - Red = Acidic (HCl)
+        - Blue = Basic (NaOH)
+    3. The paper will reset after 5 seconds
+    """)
 
-# Display beakers
-st.write("### Solutions:")
-for beaker, solution in solutions.items():
-    st.markdown(
-        f"""
-        <div class='beaker'>
-            <div style='position: absolute; bottom: 10px; width: 100%; text-align: center;'>
-                {beaker} <br> <small>{solution}</small>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    # Initialize session state
+    if 'dragging' not in st.session_state:
+        st.session_state.dragging = False
+    if 'last_drop_time' not in st.session_state:
+        st.session_state.last_drop_time = time.time()
+    if 'current_color' not in st.session_state:
+        st.session_state.current_color = "black"
 
-# Litmus Paper
-st.write("### Drag the Litmus Paper into a Beaker:")
-litmus_paper = st.button("🧪 Litmus Paper")
+    # Create container for beakers
+    col1, col2, col3 = st.columns(3)
+    
+    # Display beakers
+    with col1:
+        st.markdown("### H₂O")
+        st.markdown(create_beaker_svg(), unsafe_allow_html=True)
+        st.markdown("(Neutral)")
+        
+    with col2:
+        st.markdown("### HCl")
+        st.markdown(create_beaker_svg(), unsafe_allow_html=True)
+        st.markdown("(Acidic)")
+        
+    with col3:
+        st.markdown("### NaOH")
+        st.markdown(create_beaker_svg(), unsafe_allow_html=True)
+        st.markdown("(Basic)")
 
-if litmus_paper:
-    # Select a solution (drag and drop simulation)
-    selected_solution = st.selectbox("Choose a beaker to dip the litmus paper:", list(solutions.values()))
+    # Create draggable litmus paper
+    paper_position = st_draggable("litmus_paper", 
+                                create_litmus_paper_svg(st.session_state.current_color),
+                                key="paper")
 
-    if selected_solution:
-        # Animate dipping (simulated with loading text)
-        with st.spinner(f"Dipping into {selected_solution}..."):
-            time.sleep(2)  # Dipping animation duration
+    # Handle paper position and color changes
+    if paper_position:
+        x, y = paper_position['x'], paper_position['y']
+        
+        # Define drop zones for each beaker
+        beaker_zones = {
+            'h2o': {'x': (50, 150), 'y': (100, 250)},
+            'hcl': {'x': (200, 300), 'y': (100, 250)},
+            'naoh': {'x': (350, 450), 'y': (100, 250)}
+        }
+        
+        # Check if paper is dropped in any beaker
+        current_time = time.time()
+        for solution, zone in beaker_zones.items():
+            if (zone['x'][0] <= x <= zone['x'][1] and 
+                zone['y'][0] <= y <= zone['y'][1] and 
+                current_time - st.session_state.last_drop_time > 5):
+                
+                st.session_state.last_drop_time = current_time
+                
+                # Change color based on solution
+                if solution == 'h2o':
+                    st.session_state.current_color = "green"
+                elif solution == 'hcl':
+                    st.session_state.current_color = "red"
+                elif solution == 'naoh':
+                    st.session_state.current_color = "blue"
+                
+                # Reset color after 5 seconds
+                time.sleep(0.5)  # Animation delay
+                st.experimental_rerun()
 
-        # Change color based on solution
-        new_color = solution_colors[selected_solution]
-        st.markdown(
-            f"""
-            <div class='litmus-paper' style='background-color: {new_color}; margin-top: 50px;'>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # Reset color if 5 seconds have passed
+    if time.time() - st.session_state.last_drop_time > 5:
+        st.session_state.current_color = "black"
 
-        # Hold color for a set duration
-        time.sleep(5)
-
-        # Reset litmus paper color
-        st.markdown(
-            """
-            <div class='litmus-paper' style='background-color: black; margin-top: 50px;'>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+if __name__ == "__main__":
+    main()
