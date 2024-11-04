@@ -1,78 +1,117 @@
 import streamlit as st
-import importlib
-from pathlib import Path
+import time
 
-# Configure page settings
-st.set_page_config(
-    page_title="Virtual Chemistry Lab",
-    page_icon="⚗️",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+# Page configuration
+st.set_page_config(page_title="pH Indicator Test", layout="centered")
+
+# CSS for styling the beakers, litmus paper, and animations
+st.markdown(
+    """
+    <style>
+        .beaker {
+            display: inline-block;
+            width: 100px;
+            height: 150px;
+            margin: 20px;
+            background-color: lightgrey;
+            border-radius: 10px;
+            border: 2px solid #555;
+            text-align: center;
+            position: relative;
+        }
+
+        .litmus-paper {
+            width: 40px;
+            height: 80px;
+            background-color: black;
+            margin: 0 auto;
+            position: relative;
+            top: -50px;
+            cursor: pointer;
+        }
+
+        .litmus-immersed {
+            transition: top 1s ease, background-color 1s ease;
+        }
+
+        .solution-label {
+            font-weight: bold;
+            position: absolute;
+            bottom: 5px;
+            width: 100%;
+        }
+    </style>
+    """, unsafe_allow_html=True
 )
 
-# Chemistry experiments data
-experiments = {
-    "Baking Soda and Vinegar Reaction": {
-        "module": "baking"
-    },
-    "Sodium and Water Reaction": {
-        "module": "explosion"
-    },
-    "pH Indicator": {
-        "module": "indicator"
-    },
-    "Acid-Base Titration": {
-        "module": "acid_base"
-    },
-    "Elephant Toothpaste Reaction": {
-        "module": "elephant_toothpaste"
-    }
+# Display the litmus paper and beakers
+st.write("### Drag the litmus paper into a beaker to test its pH")
+
+col1, col2, col3 = st.columns(3)
+
+# Initial litmus paper
+if "litmus_color" not in st.session_state:
+    st.session_state.litmus_color = "black"
+
+# Define the beakers and their contents
+beakers = {
+    "acidic": {"name": "HCl (Acid)", "color": "red"},
+    "neutral": {"name": "H2O (Neutral)", "color": "green"},
+    "basic": {"name": "NaOH (Base)", "color": "blue"},
 }
 
-# Custom CSS for the flip card styling and title animations
-def load_css():
-    css = """
-    # [Previous CSS code remains unchanged]
+# Render the beakers
+with col1:
+    st.write('<div class="beaker"><div class="solution-label">Acid (HCl)</div></div>', unsafe_allow_html=True)
+
+with col2:
+    st.write('<div class="beaker"><div class="solution-label">Neutral (H₂O)</div></div>', unsafe_allow_html=True)
+
+with col3:
+    st.write('<div class="beaker"><div class="solution-label">Base (NaOH)</div></div>', unsafe_allow_html=True)
+
+# Drag-and-drop logic
+st.write("#### Drag the litmus paper below into one of the beakers to test")
+st.markdown('<div class="litmus-paper" id="litmus-paper"></div>', unsafe_allow_html=True)
+
+# JavaScript for drag-and-drop functionality
+st.markdown(
     """
-    st.markdown(css, unsafe_allow_html=True)
+    <script>
+    const litmus = document.getElementById("litmus-paper");
+    const beakers = document.querySelectorAll(".beaker");
 
-def render_card(title, content):
-    # [Previous render_card function remains unchanged]
-    pass
+    beakers.forEach(beaker => {
+        beaker.ondrop = (event) => {
+            event.preventDefault();
+            testLitmus(beaker);
+        };
+        beaker.ondragover = (event) => {
+            event.preventDefault();
+        };
+    });
 
-def load_module(module_name):
-    """Dynamically import and return the specified module"""
-    try:
-        return importlib.import_module(module_name)
-    except ImportError as e:
-        st.error(f"Error loading module {module_name}: {str(e)}")
-        return None
+    function testLitmus(beaker) {
+        let color = beaker.querySelector('.solution-label').textContent.includes("Acid") ? "red" :
+                    beaker.querySelector('.solution-label').textContent.includes("Neutral") ? "green" : "blue";
+        
+        litmus.style.backgroundColor = color;
+        litmus.classList.add("litmus-immersed");
+        
+        setTimeout(() => {
+            litmus.style.backgroundColor = "black";
+            litmus.classList.remove("litmus-immersed");
+        }, 5000);
+    }
+    </script>
+    """,
+    unsafe_allow_html=True
+)
 
-def main():
-    load_css()
-    
-    # Sidebar navigation
-    with st.sidebar:
-        st.title("🧪 Experiments")
-        for experiment in experiments:
-            if st.button(experiment):
-                render_experiment(experiments[experiment]["module"])
-                break
-
-    # Title container with animations and icons
-    st.markdown("""
-        <div class='title-container'>
-            # [Previous title container code remains unchanged]
-        </div>
-    """, unsafe_allow_html=True)
-
-def render_experiment(module_name):
-    module = load_module(module_name)
-    
-    if module and hasattr(module, 'run_experiment'):
-        module.run_experiment()
-    else:
-        st.warning(f"The experiment module '{module_name}' is not properly configured.")
-
-if __name__ == "__main__":
-    main()
+st.write("### Test Instructions")
+st.markdown("""
+1. Drag the litmus paper into a beaker.
+2. Observe the color change.
+3. After 5 seconds, the litmus paper will revert to black.
+4. Repeat with another beaker to test different solutions.
+""")
