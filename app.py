@@ -79,13 +79,15 @@ def load_experiment_page(page_name):
 def main():
     load_css()
     
-    # Sidebar tabs for each experiment
-    st.sidebar.title("Experiments")
-    page = st.sidebar.radio("Select an Experiment", 
-                            ["Main Page", "Acid-Base Titration", "Elephant Toothpaste Reaction", 
-                             "pH Indicator", "Sodium and Water Reaction", "Baking Soda and Vinegar Reaction"])
-    
-    if page == "Main Page":
+    # Sidebar with experiment tabs
+    with st.sidebar:
+        st.title("Experiments")
+        tab_selection = st.selectbox("Choose an experiment page", 
+                                     ["Main Page", "Acid-Base Titration", "Elephant Toothpaste Reaction", 
+                                      "pH Indicator", "Sodium and Water Reaction", "Baking Soda and Vinegar Reaction"])
+
+    # Display main page or selected experiment page without altering main page appearance
+    if tab_selection == "Main Page":
         # Title container with animations and icons
         st.markdown("""
             <div class='title-container'>
@@ -126,16 +128,16 @@ def main():
                 <a href="https://hawkardemo.streamlit.app/" target="_blank">Visit Demo Site</a>
             </div>
         """, unsafe_allow_html=True)
-    
-    elif page == "Acid-Base Titration":
+
+    elif tab_selection == "Acid-Base Titration":
         load_experiment_page("acid_base")
-    elif page == "Elephant Toothpaste Reaction":
+    elif tab_selection == "Elephant Toothpaste Reaction":
         load_experiment_page("elephant_toothpaste")
-    elif page == "pH Indicator":
+    elif tab_selection == "pH Indicator":
         load_experiment_page("indicator")
-    elif page == "Sodium and Water Reaction":
+    elif tab_selection == "Sodium and Water Reaction":
         load_experiment_page("explosion")
-    elif page == "Baking Soda and Vinegar Reaction":
+    elif tab_selection == "Baking Soda and Vinegar Reaction":
         load_experiment_page("baking")
 
 if __name__ == "__main__":
