@@ -1,67 +1,95 @@
 import streamlit as st
-import cv2
-import numpy as np
-from PIL import Image
+import time
+import streamlit.components.v1 as components
 
-# Define solution colors (BGR format)
-neutral_color = (112, 112, 112)  # Light grey
-acidic_color = (0, 0, 255)  # Red
-basic_color = (255, 0, 0)  # Blue
+# Custom CSS for visuals
+st.markdown(
+    """
+    <style>
+    .beaker {
+        display: inline-block;
+        width: 100px;
+        height: 150px;
+        background-color: #d3d3d3; /* Light grey solution */
+        border-radius: 10px 10px 0 0;
+        border: 2px solid #999;
+        position: relative;
+        margin: 20px;
+        text-align: center;
+        vertical-align: top;
+    }
+    .litmus-paper {
+        width: 80px;
+        height: 10px;
+        background-color: black;
+        margin-top: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-# Define image paths
-beaker_path = "beaker.png"
-litmus_path = "litmus_black.png"
+st.title("Litmus Paper Experiment")
 
-# Load images
-beaker_img = cv2.imread(beaker_path, cv2.IMREAD_UNCHANGED)
-litmus_img = cv2.imread(litmus_path, cv2.IMREAD_UNCHANGED)
+# Beakers with different solutions
+solutions = {
+    "Beaker 1": "Neutral (H₂O)",
+    "Beaker 2": "Acidic (HCl)",
+    "Beaker 3": "Basic (NaOH)"
+}
+solution_colors = {
+    "Neutral (H₂O)": "green",
+    "Acidic (HCl)": "red",
+    "Basic (NaOH)": "blue"
+}
 
-# Define solution regions in the beaker image
-acidic_region = [(100, 100), (200, 200)]  # Replace with actual coordinates in your image
-basic_region = [(300, 100), (400, 200)]  # Replace with actual coordinates in your image
-neutral_region = [(0, 0), (beaker_img.shape[1], beaker_img.shape[0])]  # Full beaker
+# Display beakers
+st.write("### Solutions:")
+for beaker, solution in solutions.items():
+    st.markdown(
+        f"""
+        <div class='beaker'>
+            <div style='position: absolute; bottom: 10px; width: 100%; text-align: center;'>
+                {beaker} <br> <small>{solution}</small>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-# Function to check which solution region the litmus is dropped on
-def get_solution(x, y):
-  if acidic_region[0][0] < x < acidic_region[1][0] and acidic_region[0][1] < y < acidic_region[1][1]:
-    return "acidic"
-  elif basic_region[0][0] < x < basic_region[1][0] and basic_region[0][1] < y < basic_region[1][1]:
-    return "basic"
-  else:
-    return "neutral"
+# Litmus Paper
+st.write("### Drag the Litmus Paper into a Beaker:")
+litmus_paper = st.button("🧪 Litmus Paper")
 
-# Function to animate litmus dipping
-def dip_litmus(beaker, litmus, duration=0.5):
-  frames = []
-  for i in range(int(duration * 30)):
-    dy = (litmus.shape[0] - 50) * i / (duration * 30)
-    mask = cv2.bitwise_not(litmus[:, :, 3:])  # Extract alpha channel
-    result = cv2.seamlessClone(litmus[:, :, :3], beaker, mask, (beaker.shape[1] // 2, beaker.shape[0] - 50 + dy), cv2.NORMAL_CLONE)
-    frames.append(result)
-  return frames
+if litmus_paper:
+    # Select a solution (drag and drop simulation)
+    selected_solution = st.selectbox("Choose a beaker to dip the litmus paper:", list(solutions.values()))
 
-# Function to change litmus color
-def change_color(litmus, color, duration=5):
-  frames = []
-  for i in range(duration * 30):
-    alpha = i / (duration * 30)
-    new_color = cv2.addWeighted(litmus[:, :, :3], 1 - alpha, np.full((litmus.shape[0], litmus.shape[1], 3), color, dtype=np.uint8), alpha, 0)
-    result = cv2.cvtColor(new_color, cv2.COLOR_BGR2BGRA)
-    result[:, :, 3] = litmus[:, :, 3]  # Preserve alpha channel
-    frames.append(result)
-  return frames
+    if selected_solution:
+        # Animate dipping (simulated with loading text)
+        with st.spinner(f"Dipping into {selected_solution}..."):
+            time.sleep(2)  # Dipping animation duration
 
-# Function to display the simulation
-def display_simulation():
-  state = st.empty()
-  litmus_pos = (state.width // 2, 50)
-  solution = None
-  color_change_frames = None
+        # Change color based on solution
+        new_color = solution_colors[selected_solution]
+        st.markdown(
+            f"""
+            <div class='litmus-paper' style='background-color: {new_color}; margin-top: 50px;'>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-  def on_drag(key, delta):
-    nonlocal litmus_pos
-    litmus_pos = (max(0, min(state.width - litmus_img.shape[1], litmus_pos[0] + delta[0])), litmus_pos[1])
-    solution = get_solution(litmus_pos[0], litmus_pos[1])
-    state.empty()
+        # Hold color for a set duration
+        time.sleep(5)
 
-  litmus_img_with_alpha = cv2.cvtColor(litmus_img, cv2.COLOR_BGR
+        # Reset litmus paper color
+        st.markdown(
+            """
+            <div class='litmus-paper' style='background-color: black; margin-top: 50px;'>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
