@@ -3,14 +3,13 @@ import streamlit.components.v1 as components
 from pathlib import Path
 import importlib
 import sys
-from typing import Dict, Any
 
 # Configure page settings
 st.set_page_config(
     page_title="Virtual Chemistry Lab",
     page_icon="⚗️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Chemistry experiments data
@@ -47,11 +46,168 @@ experiments = {
     }
 }
 
+# Custom CSS for the flip card styling and title animations
 def load_css():
-    # [Previous CSS code remains unchanged]
-    pass
+    css = """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
-def render_card(title: str, content: Dict[str, Any]) -> None:
+    .title-container {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: #f0f0f0;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    @keyframes titlePulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes titleWave {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @keyframes glowShift {
+        0% { text-shadow: 0 0 10px rgba(0,0,139,0.7), 0 0 20px rgba(0,0,139,0.5); }
+        50% { text-shadow: 0 0 15px rgba(255,0,0,0.7), 0 0 25px rgba(255,0,0,0.5); }
+        100% { text-shadow: 0 0 10px rgba(0,0,139,0.7), 0 0 20px rgba(0,0,139,0.5); }
+    }
+
+    .glowing-title {
+        font-family: 'Roboto', sans-serif;
+        font-size: 3.5em;
+        color: #00008B;
+        animation: titlePulse 3s infinite ease-in-out, titleWave 4s infinite ease-in-out, glowShift 6s infinite ease-in-out;
+        margin: 20px 0;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .icons-container {
+        margin: 20px 0;
+        position: relative;
+        height: 60px;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-15px) rotate(180deg); }
+        100% { transform: translateY(0px) rotate(360deg); }
+    }
+
+    .chemistry-icon {
+        font-size: 2.5em;
+        display: inline-block;
+        margin: 0 15px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(20px); }
+        50% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-20px); }
+    }
+
+    .floating-formula {
+        position: absolute;
+        font-size: 1.2em;
+        opacity: 0;
+        animation: fadeInOut 4s infinite;
+    }
+
+    .formula1 { left: 10%; top: 20%; animation-delay: 0s; }
+    .formula2 { left: 20%; top: 60%; animation-delay: 1s; }
+    .formula3 { left: 80%; top: 30%; animation-delay: 2s; }
+    .formula4 { left: 70%; top: 70%; animation-delay: 3s; }
+    .formula5 { left: 40%; top: 40%; animation-delay: 1.5s; }
+
+    .flip-card {
+        background-color: transparent;
+        width: 100%;
+        height: 400px;
+        perspective: 1000px;
+    }
+
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 20px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .flip-card-front {
+        background: linear-gradient(145deg, #a8e6cf 0%, #98FB98 100%);
+        color: #1a1a1a;
+    }
+
+    .flip-card-back {
+        background: linear-gradient(145deg, #FFB6C6 0%, #ffd1dc 100%);
+        color: #1a1a1a;
+        transform: rotateY(180deg);
+    }
+
+    /* Custom sidebar styling */
+    .sidebar .sidebar-content {
+        background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
+    }
+
+    .sidebar .element-container {
+        background: transparent;
+    }
+    
+    /* Style the radio buttons in sidebar */
+    .stRadio > label {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 500;
+        color: #1a1a1a;
+    }
+
+    .stRadio > div[role="radiogroup"] > label {
+        background: white;
+        padding: 10px;
+        border-radius: 10px;
+        margin: 5px 0;
+        transition: all 0.3s ease;
+    }
+
+    .stRadio > div[role="radiogroup"] > label:hover {
+        background: #f8f8f8;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+def render_card(title, content):
     st.markdown(f"""
         <div class="flip-card">
             <div class="flip-card-inner">
@@ -71,7 +227,7 @@ def render_card(title: str, content: Dict[str, Any]) -> None:
         </div>
     """, unsafe_allow_html=True)
 
-def load_module(module_name: str):
+def load_module(module_name):
     """Dynamically import and return the specified module"""
     try:
         return importlib.import_module(module_name)
@@ -79,7 +235,16 @@ def load_module(module_name: str):
         st.error(f"Error loading module {module_name}: {str(e)}")
         return None
 
-def render_title():
+def main():
+    load_css()
+    
+    # Sidebar navigation
+    with st.sidebar:
+        st.title("🧪 Experiments")
+        tabs = ["Overview"] + list(experiments.keys())
+        selected_tab = st.radio("Select Experiment", tabs)
+    
+    # Title container with animations and icons
     st.markdown("""
         <div class='title-container'>
             <div class='floating-formula formula1'>H₂O 💧</div>
@@ -98,36 +263,20 @@ def render_title():
         </div>
     """, unsafe_allow_html=True)
 
-def render_overview():
-    """Render the main overview page with experiment cards"""
-    # Create the layout with two rows: top row with three cards, bottom row with two
-    top_row = st.columns(3)
-    bottom_row = st.columns(2)
-
-    # First row of cards (3 cards)
-    for i, (title, content) in enumerate(list(experiments.items())[:3]):
-        with top_row[i]:
-            render_card(title, content)
-
-    # Second row of cards (2 cards)
-    for i, (title, content) in enumerate(list(experiments.items())[3:]):
-        with bottom_row[i]:
-            render_card(title, content)
-
-def main():
-    load_css()
-
-    # Sidebar navigation
-    with st.sidebar:
-        st.title("Navigation")
-        tabs = ["Overview"] + list(experiments.keys())
-        selected_tab = st.radio("Select Experiment", tabs)
-
-    # Main content area
-    render_title()
-
     if selected_tab == "Overview":
-        render_overview()
+        # Create the layout with two rows: top row with three cards, bottom row with two
+        top_row = st.columns(3)
+        bottom_row = st.columns(2)
+
+        # First row of cards (3 cards)
+        for i, (title, content) in enumerate(list(experiments.items())[:3]):
+            with top_row[i]:
+                render_card(title, content)
+
+        # Second row of cards (2 cards)
+        for i, (title, content) in enumerate(list(experiments.items())[3:]):
+            with bottom_row[i]:
+                render_card(title, content)
     else:
         # Load and display the selected experiment's content
         experiment_data = experiments[selected_tab]
