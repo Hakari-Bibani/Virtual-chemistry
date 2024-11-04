@@ -2,7 +2,13 @@ import streamlit as st
 import streamlit.components.v1 as components
 from pathlib import Path
 import base64
-import importlib
+
+# Import the experiment pages
+import acid_base
+import elephant_toothpaste
+import indicator
+import explosion
+import baking
 
 # Configure page settings
 st.set_page_config(
@@ -12,7 +18,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Chemistry experiments data
+# Chemistry experiments data for the main page cards
 experiments = {
     "Baking Soda and Vinegar Reaction": {
         "description": "A classic acid-base reaction that produces carbon dioxide gas.",
@@ -44,7 +50,9 @@ experiments = {
 # Custom CSS for the flip card styling and title animations
 def load_css():
     css = """
-    /* Your CSS code remains unchanged */
+    <style>
+    /* Your CSS styling code here */
+    </style>
     """
     st.markdown(css, unsafe_allow_html=True)
 
@@ -68,26 +76,19 @@ def render_card(title, content):
         </div>
     """, unsafe_allow_html=True)
 
-def load_experiment_page(page_name):
-    try:
-        # Dynamically import the selected page
-        page_module = importlib.import_module(page_name)
-        page_module.main()  # Assuming each experiment page has a main() function
-    except Exception as e:
-        st.error(f"Error loading page {page_name}: {e}")
-
 def main():
+    # Load CSS for styling
     load_css()
     
-    # Sidebar with experiment tabs
-    with st.sidebar:
-        st.title("Experiments")
-        tab_selection = st.selectbox("Choose an experiment page", 
-                                     ["Main Page", "Acid-Base Titration", "Elephant Toothpaste Reaction", 
-                                      "pH Indicator", "Sodium and Water Reaction", "Baking Soda and Vinegar Reaction"])
+    # Sidebar for experiment navigation
+    st.sidebar.title("Experiments")
+    experiment_choice = st.sidebar.radio(
+        "Choose an experiment:",
+        ("Main Page", "Acid Base", "Elephant Toothpaste", "Indicator", "Explosion", "Baking Soda & Vinegar")
+    )
 
-    # Display main page or selected experiment page without altering main page appearance
-    if tab_selection == "Main Page":
+    # Display main page or selected experiment page
+    if experiment_choice == "Main Page":
         # Title container with animations and icons
         st.markdown("""
             <div class='title-container'>
@@ -129,16 +130,20 @@ def main():
             </div>
         """, unsafe_allow_html=True)
 
-    elif tab_selection == "Acid-Base Titration":
-        load_experiment_page("acid_base")
-    elif tab_selection == "Elephant Toothpaste Reaction":
-        load_experiment_page("elephant_toothpaste")
-    elif tab_selection == "pH Indicator":
-        load_experiment_page("indicator")
-    elif tab_selection == "Sodium and Water Reaction":
-        load_experiment_page("explosion")
-    elif tab_selection == "Baking Soda and Vinegar Reaction":
-        load_experiment_page("baking")
+    elif experiment_choice == "Acid Base":
+        acid_base.run()
+
+    elif experiment_choice == "Elephant Toothpaste":
+        elephant_toothpaste.run()
+
+    elif experiment_choice == "Indicator":
+        indicator.run()
+
+    elif experiment_choice == "Explosion":
+        explosion.run()
+
+    elif experiment_choice == "Baking Soda & Vinegar":
+        baking.run()
 
 if __name__ == "__main__":
     main()
