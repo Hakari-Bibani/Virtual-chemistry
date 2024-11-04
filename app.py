@@ -184,26 +184,22 @@ def load_css():
         background: transparent;
     }
     
-    /* Style the navigation tabs */
+    /* Style the black button tabs in sidebar */
     .stButton > button {
-        background-color: black;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
         font-family: 'Roboto', sans-serif;
         font-weight: 500;
+        color: #1a1a1a;
+        background-color: black;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        margin: 5px 0;
         transition: all 0.3s ease;
     }
 
     .stButton > button:hover {
         background-color: #333;
-    }
-
-    .stButton > button.selected {
-        background-color: #00008B;
-        color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     </style>
     """
@@ -244,10 +240,9 @@ def main():
     with st.sidebar:
         st.title("🧪 Experiments")
         tabs = ["Overview"] + list(experiments.keys())
-        selected_tab = st.buttons(tabs, key="nav_tabs")
+        selected_tab = st.buttons(tabs, use_container_width=True)
     
-    # Display the selected experiment's content
-    if selected_tab == "Overview":
+    if selected_tab == 0:
         # Title container with animations and icons
         st.markdown("""
             <div class='title-container'>
@@ -282,7 +277,7 @@ def main():
                 render_card(title, content)
     else:
         # Load and display the selected experiment's content
-        experiment_data = experiments[selected_tab]
+        experiment_data = experiments[tabs[selected_tab]]
         module_name = experiment_data["module"]
         module = load_module(module_name)
         
