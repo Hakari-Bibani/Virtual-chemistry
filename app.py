@@ -1,134 +1,168 @@
 import streamlit as st
-import random
+import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Virtual Chemistry Lab", page_icon="🧪", layout="wide")
+# Set page config
+st.set_page_config(
+    page_title="Virtual Chemistry Lab",
+    page_icon="⚗️",
+    layout="wide"
+)
 
-# Inject CSS styles
-st.markdown("""
+# Custom CSS for animations and styling
+custom_css = """
 <style>
-/* Neon glowing text with wave effect */
-@keyframes neon {
-  0% {
-    text-shadow: 0 0 5px #fff;
-  }
-  50% {
-    text-shadow: 0 0 20px #0ff;
-  }
-  100% {
-    text-shadow: 0 0 5px #fff;
-  }
-}
+    /* Title container */
+    .title-container {
+        background-color: rgba(211, 211, 211, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        position: relative;
+        overflow: hidden;
+    }
 
-.glowing-title {
-  font-size: 4em;
-  color: #fff;
-  animation: neon 2s infinite;
-  text-align: center;
-  margin: 0;
-  padding: 20px;
-  background-color: rgba(211, 211, 211, 0.1);
-  border-radius: 10px;
-  display: inline-block;
-}
+    /* Neon title effect */
+    .neon-title {
+        font-size: 3em;
+        font-weight: bold;
+        text-align: center;
+        color: #fff;
+        text-shadow: 0 0 5px #fff,
+                     0 0 10px #fff,
+                     0 0 20px #ff00de,
+                     0 0 30px #ff00de,
+                     0 0 40px #ff00de;
+        animation: text-glow 2s ease-in-out infinite alternate;
+    }
 
-.title-container {
-  text-align: center;
-  margin-top: 50px;
-  position: relative;
-  overflow: hidden;
-}
+    @keyframes text-glow {
+        from {
+            text-shadow: 0 0 5px #fff,
+                         0 0 10px #fff,
+                         0 0 20px #ff00de,
+                         0 0 30px #ff00de;
+        }
+        to {
+            text-shadow: 0 0 10px #fff,
+                         0 0 20px #fff,
+                         0 0 30px #ff00de,
+                         0 0 40px #ff00de,
+                         0 0 50px #ff00de;
+        }
+    }
 
-.floating-element {
-  position: absolute;
-  font-size: 2em;
-  animation: float 5s infinite;
-}
+    /* Floating symbols */
+    .floating-symbol {
+        position: absolute;
+        opacity: 0;
+        animation: float 4s infinite;
+    }
 
-@keyframes float {
-  0% { opacity: 0; transform: translateY(100%); }
-  50% { opacity: 1; transform: translateY(-100%); }
-  100% { opacity: 0; transform: translateY(-200%); }
-}
+    @keyframes float {
+        0% { opacity: 0; transform: translateY(0); }
+        50% { opacity: 1; }
+        100% { opacity: 0; transform: translateY(-20px); }
+    }
 
-/* Flip card styles */
-.flip-card {
-  background-color: transparent;
-  width: 300px;
-  height: 200px;
-  perspective: 1000px;
-  margin: 20px;
-}
+    /* Flip cards container */
+    .cards-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        margin: 20px 0;
+    }
 
-.flip-card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  transition: transform 0.8s;
-  transform-style: preserve-3d;
-}
+    /* Flip card */
+    .flip-card {
+        width: 300px;
+        height: 200px;
+        perspective: 1000px;
+        margin: 10px;
+    }
 
-.flip-card:hover .flip-card-inner {
-  transform: rotateY(180deg);
-}
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+        cursor: pointer;
+    }
 
-.flip-front, .flip-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-}
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+    }
 
-.flip-front {
-  background-color: lightgreen;
-  color: black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-}
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        border-radius: 10px;
+    }
 
-.flip-back {
-  background-color: lightpink;
-  color: black;
-  transform: rotateY(180deg);
-  padding: 10px;
-  box-sizing: border-box;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    .flip-card-front {
+        background-color: rgba(144, 238, 144, 0.3);
+        color: black;
+    }
 
-.flip-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
+    .flip-card-back {
+        background-color: rgba(255, 192, 203, 0.3);
+        color: black;
+        transform: rotateY(180deg);
+    }
 
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 20px;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
 </style>
-""", unsafe_allow_html=True)
+"""
 
-# Title with glowing effect
-st.markdown("""
+# HTML for the title section with floating symbols
+title_html = """
 <div class="title-container">
-  <h1 class="glowing-title">Virtual Chemistry Lab</h1>
-</div>
-""", unsafe_allow_html=True)
-
-# Floating elements (emojis and chemical formulas)
-floating_elements = ["H₂O 💧", "CO₂ 💨", "🔥", "NaCl", "CH₄ 🔥", "🧪", "🔬", "🧫", "⚛️", "🌡️", "💡"]
-
-# Display floating elements
-for elem in floating_elements:
-    st.markdown(f"""
-    <div class="floating-element" style="top:{random.randint(10, 90)}%; left:{random.randint(10, 90)}%;">
-        {elem}
+    <h1 class="neon-title">Virtual Chemistry Lab</h1>
+    <div class="floating-symbols">
+        <span class="floating-symbol" style="left: 10%; animation-delay: 0s;">H₂O 💧</span>
+        <span class="floating-symbol" style="left: 20%; animation-delay: 1s;">CO₂ 💨</span>
+        <span class="floating-symbol" style="left: 30%; animation-delay: 2s;">🔥</span>
+        <span class="floating-symbol" style="left: 40%; animation-delay: 3s;">NaCl</span>
+        <span class="floating-symbol" style="left: 50%; animation-delay: 4s;">CH₄ 🔥</span>
+        <span class="floating-symbol" style="right: 40%; animation-delay: 5s;">🧪</span>
+        <span class="floating-symbol" style="right: 30%; animation-delay: 6s;">🔬</span>
+        <span class="floating-symbol" style="right: 20%; animation-delay: 7s;">🧫</span>
+        <span class="floating-symbol" style="right: 10%; animation-delay: 8s;">⚛️</span>
     </div>
-    """, unsafe_allow_html=True)
+</div>
+"""
 
-# Flip cards
-flip_cards = [
+# Inject custom CSS
+st.markdown(custom_css, unsafe_allow_html=True)
+st.markdown(title_html, unsafe_allow_html=True)
+
+# Create tabs
+tabs = st.tabs([
+    "Baking Soda and Vinegar",
+    "Sodium and Water",
+    "pH Indicator",
+    "Acid-Base Titration",
+    "Elephant Toothpaste"
+])
+
+# Flip cards data
+cards_data = [
     {
         "name": "Sodium and Water Reaction",
         "description": "Sodium metal reacts with water, producing hydrogen gas and heat, often resulting in a small flame or explosion.",
@@ -156,63 +190,59 @@ flip_cards = [
     }
 ]
 
-# Display flip cards
-st.markdown('<div class="flip-container">', unsafe_allow_html=True)
-for card in flip_cards:
-    st.markdown(f"""
+# Generate flip cards HTML
+cards_html = """
+<div class="cards-container">
+"""
+
+for i, card in enumerate(cards_data):
+    cards_html += f"""
     <div class="flip-card">
-      <div class="flip-card-inner">
-        <div class="flip-front">
-          <h3>{card['name']}</h3>
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <h3>{card['name']}</h3>
+            </div>
+            <div class="flip-card-back">
+                <div>
+                    <p><strong>Description:</strong> {card['description']}</p>
+                    <p><strong>Fun Fact:</strong> {card['fun_fact']}</p>
+                </div>
+            </div>
         </div>
-        <div class="flip-back">
-          <div>
-            <p><strong>Description:</strong> {card['description']}</p>
-            <p><strong>Fun Fact:</strong> {card['fun_fact']}</p>
-          </div>
-        </div>
-      </div>
     </div>
-    """, unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+    """
 
-# Tabs for experiments
-tabs = st.tabs(["Baking Soda and Vinegar Reaction", "Sodium and Water Reaction", "pH Indicator", "Acid-Base Titration", "Elephant Toothpaste Reaction"])
+cards_html += "</div>"
 
-# For each tab, import the corresponding module
-with tabs[0]:
-    st.header("Baking Soda and Vinegar Reaction")
-    # Assuming you have an app() function in reactions/baking.py
-    import reactions.baking as baking
-    baking.app()
-with tabs[1]:
-    st.header("Sodium and Water Reaction")
-    import reactions.explosion as explosion
-    explosion.app()
-with tabs[2]:
-    st.header("pH Indicator")
-    import reactions.indicator as indicator
-    indicator.app()
-with tabs[3]:
-    st.header("Acid-Base Titration")
-    import reactions.acid_base as acid_base
-    acid_base.app()
-with tabs[4]:
-    st.header("Elephant Toothpaste Reaction")
-    import reactions.elephant_toothpaste as elephant_toothpaste
-    elephant_toothpaste.app()
-
-# Hide the Streamlit sidebar
-st.markdown("""
-    <style>
-        [data-testid="stSidebar"] {
-            display: none;
-        }
-    </style>
-    """, unsafe_allow_html=True)
+# Display flip cards
+st.markdown(cards_html, unsafe_allow_html=True)
 
 # Footer
-st.markdown("""
----
-<p style='text-align: center;'>Created by Hakari Bibani | <a href='https://hawkardemo.streamlit.app/' target='_blank'>https://hawkardemo.streamlit.app/</a></p>
-""", unsafe_allow_html=True)
+footer_html = """
+<div class="footer">
+    Created by Hakari Bibani | 
+    <a href="https://hawkardemo.streamlit.app/" target="_blank">Visit Demo</a>
+</div>
+"""
+st.markdown(footer_html, unsafe_allow_html=True)
+
+# Import and use reaction modules based on selected tab
+with tabs[0]:
+    from reactions.baking import show_reaction
+    show_reaction()
+
+with tabs[1]:
+    from reactions.explosion import show_reaction
+    show_reaction()
+
+with tabs[2]:
+    from reactions.indicator import show_reaction
+    show_reaction()
+
+with tabs[3]:
+    from reactions.acid_base import show_reaction
+    show_reaction()
+
+with tabs[4]:
+    from reactions.elephant_toothpaste import show_reaction
+    show_reaction()
