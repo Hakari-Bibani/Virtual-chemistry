@@ -1,107 +1,230 @@
-# indicator.py
 import streamlit as st
 import time
-from PIL import Image
-import numpy as np
-import io
-import base64
-from streamlit_draggable import st_draggable
 
-def create_beaker_svg(color="#f0f0f0"):
-    return f"""
-    <svg width="100" height="150" viewBox="0 0 100 150">
-        <path d="M20 30 L20 120 Q20 140 40 140 L60 140 Q80 140 80 120 L80 30 Z" 
-              fill="{color}" stroke="black" stroke-width="2"/>
-        <path d="M15 30 L85 30" stroke="black" stroke-width="2"/>
-    </svg>
-    """
+# Custom CSS with enhanced styling and animations
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap');
 
-def create_litmus_paper_svg(color="black"):
-    return f"""
-    <svg width="20" height="80" viewBox="0 0 20 80">
-        <rect x="5" y="0" width="10" height="80" fill="{color}" stroke="none"/>
-    </svg>
-    """
+    .title {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 2.8em;
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        position: relative;
+        background: linear-gradient(45deg, #2c3e50, #3498db, #2c3e50);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 200% auto;
+        animation: gradient 3s linear infinite, float 3s ease-in-out infinite;
+    }
 
-def main():
-    st.title("Interactive Litmus Paper Experiment")
-    st.markdown("""
-    ### Instructions:
-    1. Drag the litmus paper into any beaker to test the solution
-    2. Watch the color change based on the pH:
-        - Green = Neutral (H₂O)
-        - Red = Acidic (HCl)
-        - Blue = Basic (NaOH)
-    3. The paper will reset after 5 seconds
-    """)
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 200% 50%; }
+    }
 
-    # Initialize session state
-    if 'dragging' not in st.session_state:
-        st.session_state.dragging = False
-    if 'last_drop_time' not in st.session_state:
-        st.session_state.last_drop_time = time.time()
-    if 'current_color' not in st.session_state:
-        st.session_state.current_color = "black"
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(-2deg); }
+        50% { transform: translateY(-10px) rotate(2deg); }
+    }
 
-    # Create container for beakers
-    col1, col2, col3 = st.columns(3)
+    .litmus-container {
+        display: flex;
+        justify-content: space-around;
+        margin: 20px 0;
+        padding: 20px;
+        height: 120px;
+    }
     
-    # Display beakers
-    with col1:
-        st.markdown("### H₂O")
-        st.markdown(create_beaker_svg(), unsafe_allow_html=True)
-        st.markdown("(Neutral)")
-        
-    with col2:
-        st.markdown("### HCl")
-        st.markdown(create_beaker_svg(), unsafe_allow_html=True)
-        st.markdown("(Acidic)")
-        
-    with col3:
-        st.markdown("### NaOH")
-        st.markdown(create_beaker_svg(), unsafe_allow_html=True)
-        st.markdown("(Basic)")
+    .beaker-container {
+        display: flex;
+        justify-content: space-around;
+        margin: 20px 0;
+        padding: 20px;
+        position: relative;
+    }
+    
+    .litmus {
+        width: 30px;
+        height: 100px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .beaker {
+        width: 120px;
+        height: 150px;
+        position: relative;
+        background: rgba(255,255,255,0.1);
+        border: 3px solid #ddd;
+        border-top: 15px solid #ddd;
+        border-radius: 10px 10px 20px 20px;
+        text-align: center;
+        padding-top: 10px;
+        margin-bottom: 40px;
+        overflow: hidden;
+    }
+    
+    .solution {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80%;
+        border-radius: 0 0 17px 17px;
+        animation: liquidWave 4s infinite ease-in-out;
+    }
 
-    # Create draggable litmus paper
-    paper_position = st_draggable("litmus_paper", 
-                                create_litmus_paper_svg(st.session_state.current_color),
-                                key="paper")
+    .solution::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        height: 20px;
+        background: inherit;
+        filter: blur(5px);
+        opacity: 0.7;
+        animation: surfaceWave 2s infinite ease-in-out;
+    }
 
-    # Handle paper position and color changes
-    if paper_position:
-        x, y = paper_position['x'], paper_position['y']
-        
-        # Define drop zones for each beaker
-        beaker_zones = {
-            'h2o': {'x': (50, 150), 'y': (100, 250)},
-            'hcl': {'x': (200, 300), 'y': (100, 250)},
-            'naoh': {'x': (350, 450), 'y': (100, 250)}
+    @keyframes liquidWave {
+        0%, 100% { 
+            transform: translateY(2px) scaleY(1.02);
+            filter: brightness(100%);
         }
-        
-        # Check if paper is dropped in any beaker
-        current_time = time.time()
-        for solution, zone in beaker_zones.items():
-            if (zone['x'][0] <= x <= zone['x'][1] and 
-                zone['y'][0] <= y <= zone['y'][1] and 
-                current_time - st.session_state.last_drop_time > 5):
-                
-                st.session_state.last_drop_time = current_time
-                
-                # Change color based on solution
-                if solution == 'h2o':
-                    st.session_state.current_color = "green"
-                elif solution == 'hcl':
-                    st.session_state.current_color = "red"
-                elif solution == 'naoh':
-                    st.session_state.current_color = "blue"
-                
-                # Reset color after 5 seconds
-                time.sleep(0.5)  # Animation delay
-                st.experimental_rerun()
+        50% { 
+            transform: translateY(-2px) scaleY(0.98);
+            filter: brightness(105%);
+        }
+    }
 
-    # Reset color if 5 seconds have passed
-    if time.time() - st.session_state.last_drop_time > 5:
-        st.session_state.current_color = "black"
+    @keyframes surfaceWave {
+        0%, 100% { transform: translateX(-5px); }
+        50% { transform: translateX(5px); }
+    }
 
-if __name__ == "__main__":
-    main()
+    .beaker-label {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        margin-top: 15px;
+        color: #2c3e50;
+        max-width: 120px;
+        word-wrap: break-word;
+        font-weight: 600;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Title with animation
+st.markdown("<h1 class='title'>Test the pH of different solutions using litmus paper!</h1>", unsafe_allow_html=True)
+
+# Create placeholders for dynamic content
+litmus_placeholder = st.empty()
+beakers_placeholder = st.empty()
+
+def render_initial_state():
+    # Render litmus papers
+    litmus_placeholder.markdown("""
+        <div class='litmus-container'>
+            <div class='litmus' style='background-color: #FFFACD; transform: translate(0, 0) rotate(0deg);'></div>
+            <div class='litmus' style='background-color: #FFFACD; transform: translate(0, 0) rotate(0deg);'></div>
+            <div class='litmus' style='background-color: #FFFACD; transform: translate(0, 0) rotate(0deg);'></div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Render beakers with enhanced solution effects
+    beakers_placeholder.markdown("""
+        <div class='beaker-container'>
+            <div>
+                <div class='beaker'>
+                    <div class='solution' style='background: linear-gradient(to bottom, rgba(176,224,230,0.7), rgba(135,206,235,0.9));'></div>
+                </div>
+                <div class='beaker-label'>Hydrochloric acid<br>(HCl)</div>
+            </div>
+            <div>
+                <div class='beaker'>
+                    <div class='solution' style='background: linear-gradient(to bottom, rgba(176,224,230,0.7), rgba(135,206,235,0.9));'></div>
+                </div>
+                <div class='beaker-label'>Neutral water<br>(H₂O)</div>
+            </div>
+            <div>
+                <div class='beaker'>
+                    <div class='solution' style='background: linear-gradient(to bottom, rgba(176,224,230,0.7), rgba(135,206,235,0.9));'></div>
+                </div>
+                <div class='beaker-label'>Sodium hydroxide<br>(NaOH)</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+def animate_experiment():
+    # Step 1: Move papers to center of beakers with slight rotation
+    litmus_placeholder.markdown("""
+        <div class='litmus-container'>
+            <div class='litmus' style='background-color: #FFFACD; transform: translate(-10px, 90px) rotate(-3deg);'></div>
+            <div class='litmus' style='background-color: #FFFACD; transform: translate(0px, 90px) rotate(0deg);'></div>
+            <div class='litmus' style='background-color: #FFFACD; transform: translate(10px, 90px) rotate(3deg);'></div>
+        </div>
+    """, unsafe_allow_html=True)
+    time.sleep(1.5)
+    
+    # Step 2: Color change while in solutions with slight movement
+    litmus_placeholder.markdown("""
+        <div class='litmus-container'>
+            <div class='litmus' style='background: linear-gradient(to bottom, #FF6347 60%, #FFFACD); transform: translate(-10px, 90px) rotate(-3deg);'></div>
+            <div class='litmus' style='background: linear-gradient(to bottom, #90EE90 60%, #FFFACD); transform: translate(0px, 90px) rotate(0deg);'></div>
+            <div class='litmus' style='background: linear-gradient(to bottom, #4682B4 60%, #FFFACD); transform: translate(10px, 90px) rotate(3deg);'></div>
+        </div>
+    """, unsafe_allow_html=True)
+    time.sleep(2)
+    
+    # Step 3: Return to original positions with new colors and slight rotation
+    litmus_placeholder.markdown("""
+        <div class='litmus-container'>
+            <div class='litmus' style='background: linear-gradient(to bottom, #FF6347 90%, #FFFACD); transform: translate(0, 0) rotate(2deg);'></div>
+            <div class='litmus' style='background: linear-gradient(to bottom, #90EE90 90%, #FFFACD); transform: translate(0, 0) rotate(-2deg);'></div>
+            <div class='litmus' style='background: linear-gradient(to bottom, #4682B4 90%, #FFFACD); transform: translate(0, 0) rotate(1deg);'></div>
+        </div>
+    """, unsafe_allow_html=True)
+    time.sleep(2)
+    
+    # Reset to initial state
+    render_initial_state()
+
+# Initial render
+render_initial_state()
+
+# Add start button with light grey styling
+st.markdown("""
+    <style>
+        .stButton>button {
+            background: #d3d3d3;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(211, 211, 211, 0.3);
+        }
+        .stButton>button:hover {
+            background: #c0c0c0;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(211, 211, 211, 0.4);
+        }
+        .stButton>button:active {
+            transform: translateY(-1px);
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+if st.button("Start Experiment"):
+    animate_experiment()
