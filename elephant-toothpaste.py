@@ -5,13 +5,13 @@ def run_experiment():
     # Custom CSS for enhanced styling and animations
     st.markdown("""
     <style>
-        /* Your CSS here */
+        /* (CSS code remains the same here) */
     </style>
     """, unsafe_allow_html=True)
 
     # Display the title
     st.markdown("<h1 class='title'>Chemical Reaction Animation</h1>", unsafe_allow_html=True)
-
+    
     # Container for the experiment
     container = st.empty()
     
@@ -57,29 +57,4 @@ def run_experiment():
                 </div>
                 <div class="cylinder reacting">
                     <div class="solution"></div>
-                    <div class="foam"></div>
-                    <div class="label">30% KI</div>
-                    <div class="particle" style="--tx: 30px; --ty: -60px;"></div>
-                    <div class="particle" style="--tx: -25px; --ty: -55px;"></div>
-                    <div class="particle" style="--tx: 15px; --ty: -65px;"></div>
-                    <div class="particle" style="--tx: -35px; --ty: -50px;"></div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-    
-    render_initial_state()
-    
-    if st.button("Start Reaction"):
-        animate_reaction()
-        st.markdown("""
-            **Chemical Reaction:**
-            2 H₂O₂ (aq) + 30% KI (aq) → 2 H₂O (l) + O₂ (g) + KI (aq)
-            
-            **Note:** The rapid decomposition of hydrogen peroxide is catalyzed by potassium iodide, 
-            producing water and oxygen gas. The dramatic foam effect is created by the rapid release of oxygen gas.
-        """)
-        
-        st.button("Reset Experiment", on_click=run_experiment)
-
-if __name__ == "__main__":
-    run_experiment()
+                    <div class="foam"></div
