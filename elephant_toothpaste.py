@@ -263,6 +263,7 @@ def run_experiment():
             
             **Note:** The rapid decomposition of hydrogen peroxide is catalyzed by potassium iodide, 
             producing water and oxygen gas. The dramatic foam effect is created by the rapid release of oxygen gas.
+            Note:** Optionally, you can add food coloring and liquid soap for more dramatic effect
         """)
 
 if __name__ == "__main__":
