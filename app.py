@@ -240,7 +240,7 @@ def main():
 
     # Sidebar navigation with buttons
     with st.sidebar:
-        st.title("🧪 Navigation")
+        st.title("Sections🧪")
         
         # Create a button for each page
         for page_name in experiments.keys():
