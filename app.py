@@ -36,7 +36,7 @@ experiments = {
     "Acid-Base Titration": {
         "description": "A process where an acid is neutralized by a base.",
         "visualization": "A pH curve that changes as titrant is added.",
-        "fun_fact": "Titrations help determine unknown concentrations.",
+        "fun_fact": "Titrations are commonly used in labs to determine the concentration of an unknown solution.",
         "module": "acid_base"
     },
     "Elephant Toothpaste Reaction": {
