@@ -18,7 +18,7 @@ experiments = {
     "Baking Soda and Vinegar Reaction": {
         "description": "A classic acid-base reaction that produces carbon dioxide gas.",
         "visualization": "Fizzing and bubbling as CO2 is released.",
-        "fun_fact": "This reaction is commonly used in science fair volcanoes!",
+        "fun_fact": "This reaction is commonly used in science fair volcanoes and as a cleaning agent!",
         "module": "baking"
     },
     "Sodium and Water Reaction": {
