@@ -30,7 +30,7 @@ experiments = {
     "pH Indicator": {
         "description": "A reaction where an indicator changes color based on the pH.",
         "visualization": "Litmus turning red in acid, blue in base, green in neutral.",
-        "fun_fact": "pH indicators are used in labs and gardening!",
+        "fun_fact": "pH indicators are used in labs and gardening to test soil acidity!",
         "module": "indicator"
     },
     "Acid-Base Titration": {
