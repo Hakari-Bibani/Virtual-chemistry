@@ -42,7 +42,7 @@ experiments = {
     "Elephant Toothpaste Reaction": {
         "description": "Decomposition of hydrogen peroxide produces oxygen gas and foam.",
         "visualization": "Expanding foam like giant toothpaste.",
-        "fun_fact": "Famous for its foamy explosion in demonstrations!",
+        "fun_fact": "This reaction is famous for its foamy explosion and is popular in science demonstrations!",
         "module": "elephant_toothpaste"
     }
 }
